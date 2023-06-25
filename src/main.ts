@@ -16,20 +16,19 @@ function boostrap() {
 
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
-  
-  app.use('/events', eventRouter);
-  app.get('/uploads/:filename', (req, res) => {
+
+  app.use("/events", eventRouter);
+  app.get("/uploads/:filename", (req, res) => {
     const filename = req.params.filename;
-    const imagePath = path.join(parentDir, 'images', filename);
+    const imagePath = path.join(parentDir, "images", filename);
     res.sendFile(imagePath);
   });
-  
+
   const { port } = config.server;
 
   app.listen(port, () => {
     console.log(`[APP] - Starting application on port ${port}`);
   });
 }
-
 
 boostrap();

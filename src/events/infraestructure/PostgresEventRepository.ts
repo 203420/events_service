@@ -1,5 +1,4 @@
 import { pool } from "../../db";
-
 import { Event } from "../domain/Event";
 import { EventRepository } from "../domain/EventRepository";
 
@@ -20,6 +19,9 @@ export class PostgresEventRepository implements EventRepository {
       const result = await pool.query(sql, values);
       if (result.rows.length > 0) {
         const createdEventData = result.rows[0];
+        const providers = createdEventData.providers_id.map((i: any) =>
+          Number(i)
+        );
         const createdEvent: Event = {
           id: createdEventData.id,
           name: createdEventData.name,
@@ -27,8 +29,8 @@ export class PostgresEventRepository implements EventRepository {
           date: createdEventData.date,
           categories: createdEventData.categories,
           images: createdEventData.images,
-          userId: createdEventData.user_id,
-          providersId: createdEventData.providers_id,
+          userId: Number(createdEventData.user_id),
+          providersId: providers,
         };
         return createdEvent;
       }
@@ -45,6 +47,7 @@ export class PostgresEventRepository implements EventRepository {
       const result = await pool.query(sql, values);
       if (result.rows.length > 0) {
         const eventData = result.rows[0];
+        const providers = eventData.providers_id.map((i: any) => Number(i));
         const event: Event = {
           id: eventData.id,
           name: eventData.name,
@@ -52,8 +55,8 @@ export class PostgresEventRepository implements EventRepository {
           date: eventData.date,
           categories: eventData.categories,
           images: eventData.images,
-          userId: eventData.userId,
-          providersId: eventData.providersId,
+          userId: Number(eventData.userId),
+          providersId: providers,
         };
         return event;
       }
@@ -70,13 +73,13 @@ export class PostgresEventRepository implements EventRepository {
       const result = await pool.query(sql, values);
       const events: Event[] = result.rows.map((eventData: any) => ({
         id: eventData.id,
-          name: eventData.name,
-          description: eventData.description,
-          date: eventData.date,
-          categories: eventData.categories,
-          images: eventData.images,
-          userId: eventData.user_id,
-          providersId: eventData.providers_id,
+        name: eventData.name,
+        description: eventData.description,
+        date: eventData.date,
+        categories: eventData.categories,
+        images: eventData.images,
+        userId: Number(eventData.user_id),
+        providersId: eventData.providers_id.map((i: any) => Number(i)),
       }));
       return events;
     } catch (error) {
@@ -84,11 +87,12 @@ export class PostgresEventRepository implements EventRepository {
     }
   }
 
-  async deleteEvent(id: number): Promise<void> {
+  async deleteEvent(id: number): Promise<boolean | null> {
     const sql = "DELETE FROM events WHERE id = $1";
     const values = [id];
     try {
       await pool.query(sql, values);
+      return true;
     } catch (error) {
       throw error;
     }
