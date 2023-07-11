@@ -1,3 +1,5 @@
+import * as fs from "fs";
+
 import { pool } from "../../db";
 import { Event } from "../domain/Event";
 import { EventRepository } from "../domain/EventRepository";
@@ -55,12 +57,33 @@ export class PostgresEventRepository implements EventRepository {
           date: eventData.date,
           categories: eventData.categories,
           images: eventData.images,
-          userId: Number(eventData.userId),
+          userId: Number(eventData.user_id),
           providersId: providers,
         };
         return event;
       }
       return null;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getByProviderId(providerId: number): Promise<Event[] | null> {
+    const sql = "SELECT * FROM events WHERE $1 = ANY (providers_id)";
+    const values = [providerId];
+    try {
+      const result = await pool.query(sql, values);
+      const events: Event[] = result.rows.map((eventData: any) => ({
+        id: eventData.id,
+        name: eventData.name,
+        description: eventData.description,
+        date: eventData.date,
+        categories: eventData.categories,
+        images: eventData.images,
+        userId: Number(eventData.user_id),
+        providersId: eventData.providers_id.map((i: any) => Number(i)),
+      }));
+      return events;
     } catch (error) {
       throw error;
     }
@@ -88,11 +111,36 @@ export class PostgresEventRepository implements EventRepository {
   }
 
   async deleteEvent(id: number): Promise<boolean | null> {
-    const sql = "DELETE FROM events WHERE id = $1";
+    const sql = "DELETE FROM events WHERE id = $1 returning *";
     const values = [id];
     try {
-      await pool.query(sql, values);
-      return true;
+      const result = await pool.query(sql, values);
+      const rowsAffected = result.rowCount;
+      console.log(result.rows[0].images);
+
+      for (let i = 0; i < result.rows[0].images.length; i++) {
+        const img_path = result.rows[0].images[i];
+        fs.unlinkSync(img_path.replace("/images-events", "uploads"));
+      }
+
+      return rowsAffected > 0 ? true : false;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateEventProviders(
+    id: number,
+    providers: number[]
+  ): Promise<boolean | null> {
+    const sql = "UPDATE events SET providers_id = $1 WHERE id = $2";
+    const values = [providers, id];
+    try {
+      const result = await pool.query(sql, values);
+      console.log(result);
+      const rowsAffected = result.rowCount;
+
+      return rowsAffected > 0 ? true : false;
     } catch (error) {
       throw error;
     }

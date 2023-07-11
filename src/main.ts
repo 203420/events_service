@@ -16,11 +16,12 @@ function boostrap() {
 
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(express.static("uploads"));
 
   app.use("/events", eventRouter);
-  app.get("/uploads/:filename", (req, res) => {
+  app.get("/images-events/:filename", (req, res) => {
     const filename = req.params.filename;
-    const imagePath = path.join(parentDir, "images", filename);
+    const imagePath = path.join(parentDir, "uploads", filename);
     res.sendFile(imagePath);
   });
 

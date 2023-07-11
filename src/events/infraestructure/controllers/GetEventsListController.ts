@@ -9,6 +9,7 @@ export class GetEventListController {
     const userId = req.params.id;
     try {
       const response = await this.getEventsListUseCase.run(Number(userId));
+
       res.status(200).send(response);
     } catch (error) {
       res.status(500).send(error);

@@ -4,4 +4,6 @@ dist/
 .idea
 .env
 .production.env
+.dockerignore
+Dockerfile
 coverage/

@@ -11,7 +11,7 @@ export class DeleteEventController {
       const response = await this.deleteEventUseCase.run(Number(id));
       response == true
         ? res.status(200).send("Event deleted successfully")
-        : res.status(500).send("Error deleting event");
+        : res.status(404).send("This event does not exist");
     } catch (error) {
       res.status(500).send(error);
     }

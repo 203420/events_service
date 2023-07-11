@@ -9,18 +9,27 @@ export class CreateEventController {
   async run(req: Request, res: Response) {
     const imgPaths = [];
     const providers = [];
+    let categories = [];
     const formData = req.body;
     const files: Express.Multer.File[] = req.files as Express.Multer.File[];
     try {
-      for (let i = 0; i < files.length; i++) {
-        imgPaths.push(`/uploads/${files[i].filename}`);
+      if (files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+          imgPaths.push(`/images-events/${files[i].filename}`);
+        }
       }
-
-      for (let i = 0; i < formData.providersId.length; i++) {
-        providers.push(Number(formData.providersId[i]));
+      if (formData.providersId != null) {
+        for (let i = 0; i < formData.providersId.length; i++) {
+          providers.push(Number(formData.providersId[i]));
+        }
       }
-
-      console.log(formData.providersId);
+      if (formData.categories != null) {
+        if (typeof formData.categories === "string") {
+          categories.push(formData.categories);
+        } else {
+          categories = formData.categories;
+        }
+      }
 
       const eventData = await this.createEventUseCase.run(
         new Event(
@@ -28,7 +37,7 @@ export class CreateEventController {
           formData.name,
           formData.description,
           formData.date,
-          formData.categories,
+          categories,
           imgPaths,
           Number(formData.userId),
           providers
