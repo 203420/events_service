@@ -118,13 +118,17 @@ export class PostgresEventRepository implements EventRepository {
       const rowsAffected = result.rowCount;
       console.log(result.rows[0].images);
 
-      for (let i = 0; i < result.rows[0].images.length; i++) {
-        const img_path = result.rows[0].images[i];
-        fs.unlinkSync(img_path.replace("/images-events", "uploads"));
+      if (result.rows[0].images.length > 0) {
+        await Promise.all(
+          result.rows[0].images.map((path: any) =>
+            fs.promises.unlink(path.replace("/images-events", "uploads"))
+          )
+        );
       }
 
       return rowsAffected > 0 ? true : false;
     } catch (error) {
+      console.log(error);
       throw error;
     }
   }
